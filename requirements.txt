@@ -1,0 +1,6 @@
+setuptools
+hyperframe
+hpack
+six
+PyYAML
+click
