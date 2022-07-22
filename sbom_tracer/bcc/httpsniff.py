@@ -7,7 +7,12 @@ import os
 import socket
 import time
 
-from bcc import BPF
+from sbom_tracer.util.compat import decode
+
+try:
+    from bcc import BPF
+except ImportError:
+    from bpfcc import BPF
 
 prog = """
 #ifndef KBUILD_MODNAME
@@ -327,7 +332,7 @@ while 1:
         # match: HTTP GET/POST packet found
         if crlf in payload_string:
             # url entirely contained in first packet -> print it all
-            print(json.dumps(dict(data=payload_string.decode('utf-8', 'replace'))))
+            print(json.dumps(dict(data=decode(payload_string))))
 
             # delete current_Key from bpf_sessions, url already printed. current session not useful anymore
             try:
@@ -355,7 +360,7 @@ while 1:
                     # append current payload
                     prev_payload_string += payload_string
                     # print HTTP GET/POST url
-                    print(json.dumps(dict(data=prev_payload_string.decode('utf-8', 'replace'))))
+                    print(json.dumps(dict(data=decode(prev_payload_string))))
                     # clean bpf_sessions & local_dictionary
                     try:
                         del bpf_sessions[current_Key]

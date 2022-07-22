@@ -9,7 +9,12 @@ import json
 import time
 from collections import defaultdict
 
-from bcc import BPF
+from sbom_tracer.util.compat import decode
+
+try:
+    from bcc import BPF
+except ImportError:
+    from bpfcc import BPF
 
 # arguments
 examples = """examples:
@@ -189,9 +194,9 @@ def print_event(cpu, data, size):
     skip = False
 
     if event.type == EventType.EVENT_ARG:
-        argv[event.pid].append(event.argv)
-        if event.env.startswith("PWD="):
-            cwd[event.pid] = event.env.replace("PWD=", "")
+        argv[event.pid].append(decode(event.argv))
+        if decode(event.env).startswith("PWD="):
+            cwd[event.pid] = decode(event.env).replace("PWD=", "")
     elif event.type == EventType.EVENT_RET:
         if event.retval != 0:
             skip = True
@@ -199,7 +204,7 @@ def print_event(cpu, data, size):
         if not skip:
             ppid = event.ppid if event.ppid > 0 else get_ppid(event.pid)
             argv_text = ' '.join(argv[event.pid]).strip()
-            print(json.dumps(dict(pid=event.pid, ppid=ppid, cmd=event.comm, full_cmd=argv_text,
+            print(json.dumps(dict(pid=event.pid, ppid=ppid, cmd=decode(event.comm), full_cmd=argv_text,
                                   cwd=cwd.get(event.pid), ancestor_pids=list(event.ancestor_pids))))
         try:
             del (argv[event.pid])

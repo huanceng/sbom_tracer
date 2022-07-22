@@ -12,7 +12,12 @@ from __future__ import print_function
 import argparse
 import json
 
-from bcc import BPF
+from sbom_tracer.util.compat import decode
+
+try:
+    from bcc import BPF
+except ImportError:
+    from bpfcc import BPF
 
 # arguments
 examples = """examples:
@@ -79,10 +84,17 @@ int probe_SSL_write(struct pt_regs *ctx, void *ssl, void *buf, int num) {
 
 b = BPF(text=prog)
 
-b.attach_uprobe(name="ssl", sym="SSL_write", fn_name="probe_SSL_write", pid=-1)
-b.attach_uprobe(name="gnutls", sym="gnutls_record_send", fn_name="probe_SSL_write", pid=-1)
-b.attach_uprobe(name="nspr4", sym="PR_Write", fn_name="probe_SSL_write", pid=-1)
-b.attach_uprobe(name="nspr4", sym="PR_Send", fn_name="probe_SSL_write", pid=-1)
+
+def attach_without_exc(name, sym):
+    try:
+        b.attach_uprobe(name=name, sym=sym, fn_name="probe_SSL_write", pid=-1)
+    except:
+        pass
+
+
+ssl_list = [("ssl", "SSL_write"), ("gnutls", "gnutls_record_send"), ("nspr4", "PR_Write"), ("nspr4", "PR_Send")]
+for name, sym in ssl_list:
+    attach_without_exc(name, sym)
 
 max_buffer_size = 8192
 
@@ -112,8 +124,7 @@ def print_event(cpu, data, size):
         buf = b""
 
     ppid = event.ppid if event.ppid > 0 else get_ppid(event.pid)
-    print(json.dumps(dict(cmd=event.comm.decode('utf-8', 'replace'), pid=event.pid,
-                          ppid=ppid, data=buf.decode('utf-8', 'replace'))))
+    print(json.dumps(dict(cmd=decode(event.comm), pid=event.pid, ppid=ppid, data=decode(buf))))
 
 
 b["perf_SSL_write"].open_perf_buffer(print_event)

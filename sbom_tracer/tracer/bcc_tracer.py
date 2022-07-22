@@ -65,8 +65,19 @@ class BccTracer(object):
     def run_tracer(self):
         for tool, trace_log in [(EXECSNOOP_PATH, self.execsnoop_log), (SSLSNIFF_PATH, self.sslsniff_log),
                                 (H2SNIFF_PATH, self.h2sniff_log)]:
-            cmd = "sudo python {} --task-id {}".format(tool, self.task_id)
+            cmd = "sudo python{} {} --task-id {}".format(self.infer_bcc_python_version(), tool, self.task_id)
             run_daemon(execute, (cmd,), dict(stdout=open(trace_log, "w"), stderr=subprocess.PIPE))
+
+    @classmethod
+    def infer_bcc_python_version(cls):
+        if execute("python2 -c '''try:\n from bcc import BPF\nexcept ImportError:\n from bpfcc import BPF'''",
+                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)[0] == 0:
+            return 2
+        elif execute("python3 -c '''try:\n from bcc import BPF\nexcept ImportError:\n from bpfcc import BPF'''",
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)[0] == 0:
+            return 3
+        else:
+            raise Exception("can't infer valid bcc python version")
 
     def execute_cmd(self):
         file_path = os.path.join(self.shell_path, self.combine_shell)
