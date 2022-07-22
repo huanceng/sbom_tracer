@@ -36,7 +36,7 @@ bpf_text = """
 #define ARGSIZE  128
 #define MAXARG  64
 #define ENVSIZE  128
-#define MAXENV  128
+#define MAXENV  96
 #define MAXDEPTH 32
 
 enum event_type {
@@ -88,10 +88,9 @@ static int submit_arg(struct pt_regs *ctx, void *ptr, struct data_t *data)
 
 static void get_ancestor_pids(struct task_struct *task, u32 *ancestor_pids)
 {
+    #pragma unroll
     for (int i = 0; i < MAXDEPTH; i++)
     {
-        if (task->tgid == 1 || task->tgid == 0)
-            break;
         ancestor_pids[i] = task->tgid;
         task = task->real_parent;
     }
@@ -115,6 +114,7 @@ int syscall__execve(struct pt_regs *ctx,
     bpf_get_current_comm(&data.comm, sizeof(data.comm));
     data.type = EVENT_ARG;
     
+    #pragma unroll
     for (int i = 0; i < MAXENV; i++) {
         if (submit_env(ctx, (void *)&__envp[i], &data) == 0)
             break;
