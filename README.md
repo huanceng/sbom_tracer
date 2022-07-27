@@ -23,7 +23,12 @@ e.g., `sbom_tracer -s "bash build.sh" -w "/tmp/sbom_tracer_workspace"`
 
 ### Run in Docker
 To run *SBOM Tracer* in a docker, the docker must be run in **privileged mode** and **/lib/modules** should be mounted, e.g., 
-`docker run -it --privileged -v /var/run/docker.sock:/host/var/run/docker.sock -v /dev:/host/dev -v /proc:/host/proc:ro -v /boot:/host/boot:ro -v /usr:/host/usr:ro -v /etc:/host/etc:ro -v /lib/modules:/lib/modules:ro your_docker_image /bin/bash`
+`docker run -it --privileged -v /var/run/docker.sock:/host/var/run/docker.sock -v /dev:/host/dev -v /proc:/host/proc:ro -v /boot:/host/boot:ro -v /usr:/host/usr:ro -v /etc:/host/etc:ro -v /lib/modules:/host/lib/modules:ro your_docker_image /bin/bash`
+
+#### NOTE:
+You may need to tell BCC where kernel sources locate by [BCC_KERNEL_SOURCE](https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-kernel-source-directory).
+
+e.g., `export BCC_KERNEL_SOURCE=/usr/src/kernels/4.18.0-348.20.1.el7.aarch64/`
 
 ## Output
 *SBOM Tracer* will output four logs:
