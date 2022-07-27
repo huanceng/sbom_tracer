@@ -91,6 +91,8 @@ static void get_ancestor_pids(struct task_struct *task, u32 *ancestor_pids)
     #pragma unroll
     for (int i = 0; i < MAXDEPTH; i++)
     {
+        if (task->tgid == 1 || task->tgid == 0)
+            break;
         ancestor_pids[i] = task->tgid;
         task = task->real_parent;
     }

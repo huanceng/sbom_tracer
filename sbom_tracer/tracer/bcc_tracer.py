@@ -63,9 +63,10 @@ class BccTracer(object):
         return True
 
     def run_tracer(self):
+        bcc_python_version = self.infer_bcc_python_version()
         for tool, trace_log in [(EXECSNOOP_PATH, self.execsnoop_log), (SSLSNIFF_PATH, self.sslsniff_log),
                                 (H2SNIFF_PATH, self.h2sniff_log)]:
-            cmd = "sudo python{} {} --task-id {}".format(self.infer_bcc_python_version(), tool, self.task_id)
+            cmd = "sudo python{} {} --task-id {}".format(bcc_python_version, tool, self.task_id)
             run_daemon(execute, (cmd,), dict(stdout=open(trace_log, "w"), stderr=subprocess.PIPE))
 
     @classmethod
