@@ -14,21 +14,18 @@ The Linux kernel version of the **docker host** must be higher than 4.17, becaus
 mounted with overlayfs](https://github.com/torvalds/linux/commit/f0a2aa5a2a406d0a57aa9b320ffaa5538672b6c5).
 
 ## Usage
-`sbom_tracer -s "your build command" -w "absolute path of the tracer workspace where to save trace results"`
+`sbom_tracer -s "your build command" -w "absolute path of the tracer workspace where to save trace results" -k "the absolute path of kernel sources" -t "task id"`
 
-e.g., `sbom_tracer -s "bash build.sh" -w "/tmp/sbom_tracer_workspace"`
+e.g., `sbom_tracer -s "bash build.sh" -w "/tmp/sbom_tracer_workspace" -k "/lib/modules/4.18.0-348.20.1.el7.aarch64/build" -t "example-task-id"`
 ### Parameters
 1. `-s`, `--shell`: the input shell command
-2. `-w`, `--workspace`: tracer workspace, default is ~/sbom_tracer_workspace
+2. `-w`, `--workspace`: tracer workspace. If not specified, it will be ~/sbom_tracer_workspace
+3. `-k`, `--kernel_source`: the absolute path of kernel sources. If not specified, BCC will try to find kernel sources in /lib/modules/$(uname -r)/build. See [BCC_KERNEL_SOURCE](https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-kernel-source-directory) for details
+4. `-t`, `--task_id`: task id of a run. If not specified, task id will be the current timestamp
 
 ### Run in Docker
-To run *SBOM Tracer* in a docker, the docker must be run in **privileged mode** and **/lib/modules** should be mounted, e.g., 
+To run *SBOM Tracer* in a docker, the docker must be run in **privileged mode**, e.g., 
 `docker run -it --privileged -v /var/run/docker.sock:/host/var/run/docker.sock -v /dev:/host/dev -v /proc:/host/proc:ro -v /boot:/host/boot:ro -v /usr:/host/usr:ro -v /etc:/host/etc:ro -v /lib/modules:/host/lib/modules:ro your_docker_image /bin/bash`
-
-#### NOTE:
-You may need to tell BCC where kernel sources locate by [BCC_KERNEL_SOURCE](https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-kernel-source-directory).
-
-e.g., `export BCC_KERNEL_SOURCE=/usr/src/kernels/4.18.0-348.20.1.el7.aarch64/`
 
 ## Output
 *SBOM Tracer* will output four logs:

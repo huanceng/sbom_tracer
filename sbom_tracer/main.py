@@ -11,8 +11,11 @@ from sbom_tracer.tracer.bcc_tracer import BccTracer
 
 @click.command()
 @click.option("--shell", "-s", help="the input shell command, e.g., 'sh build.sh'")
-@click.option("--workspace", "-w", help="tracer workspace, default is ~/sbom_tracer_workspace")
-def main(shell, workspace):
+@click.option("--workspace", "-w", help="tracer workspace. If not specified, it will be ~/sbom_tracer_workspace")
+@click.option("--kernel_source", "-k", help="the absolute path of kernel sources. If not specified, "
+                                            "BCC will try to find kernel sources in /lib/modules/$(uname -r)/build")
+@click.option("--task_id", "-t", help="task id of a run. If not specified, task id will be the current timestamp")
+def main(shell, workspace, kernel_source, task_id):
     if not shell:
         click.echo("please input a shell command, such as 'sh build.sh'")
         sys.exit(1)
@@ -24,7 +27,7 @@ def main(shell, workspace):
         sys.exit(1)
 
     try:
-        status = BccTracer(shell=shell, workspace=workspace, shell_path=os.getcwd()).trace()
+        status = BccTracer(shell, workspace, kernel_source, task_id, os.getcwd()).trace()
         sys.exit(status)
     except Exception as e:
         click.echo("exception occurs: {}".format(str(e)))

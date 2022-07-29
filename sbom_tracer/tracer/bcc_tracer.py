@@ -14,11 +14,12 @@ from sbom_tracer.util.shell_util import execute, execute_recursive
 
 
 class BccTracer(object):
-    def __init__(self, shell, workspace, shell_path):
+    def __init__(self, shell, workspace, kernel_source, task_id, shell_path):
         self.shell = shell
         self.workspace = workspace
+        self.kernel_source = kernel_source
         self.shell_path = shell_path
-        self.task_id = str(time.time())
+        self.task_id = task_id if task_id else str(time.time())
         self.task_workspace = self._init_task_workspace()
         self.combine_shell = "{}_{}.sh".format(self.task_id, PROJECT_NAME)
         self.config = get_command_config()
@@ -67,6 +68,9 @@ class BccTracer(object):
         for tool, trace_log in [(EXECSNOOP_PATH, self.execsnoop_log), (SSLSNIFF_PATH, self.sslsniff_log),
                                 (H2SNIFF_PATH, self.h2sniff_log)]:
             cmd = "sudo python{} {} --task-id {}".format(bcc_python_version, tool, self.task_id)
+            if self.kernel_source:
+                cmd = "sudo BCC_KERNEL_SOURCE={} python{} {} --task-id {}".format(
+                    self.kernel_source, bcc_python_version, tool, self.task_id)
             run_daemon(execute, (cmd,), dict(stdout=open(trace_log, "w"), stderr=subprocess.PIPE))
 
     @classmethod
@@ -89,18 +93,18 @@ class BccTracer(object):
         return shell_exit_status
 
     def stop_trace(self):
-        if execute_recursive("ps -ef | grep {} | grep -v \"grep\"".format(self.task_id))[0] != 0:
+        if execute_recursive("ps -ef | grep 'task-id {}' | grep -v \"grep\"".format(self.task_id))[0] != 0:
             return
-        execute_recursive(
-            "ps -ef | grep {} | grep -v \"grep\" | awk '{{print $2}}' | sudo xargs kill -2".format(self.task_id))
+        execute_recursive("ps -ef | grep 'task-id {}' | grep -v \"grep\" | awk '{{print $2}}' | "
+                          "sudo xargs kill -2".format(self.task_id))
         time.sleep(1)
 
         for _ in range(3):
-            if execute_recursive("ps -ef | grep {} | grep -v \"grep\"".format(self.task_id))[0] != 0:
+            if execute_recursive("ps -ef | grep 'task-id {}' | grep -v \"grep\"".format(self.task_id))[0] != 0:
                 print("successfully stop tracer with task id: {}".format(self.task_id))
                 break
-            execute_recursive(
-                "ps -ef | grep {} | grep -v \"grep\" | awk '{{print $2}}' | sudo xargs kill -9".format(self.task_id))
+            execute_recursive("ps -ef | grep 'task-id {}' | grep -v \"grep\" | awk '{{print $2}}' | "
+                              "sudo xargs kill -9".format(self.task_id))
             time.sleep(1)
         else:
             print("failed to stop tracer with task id: {}".format(self.task_id))
