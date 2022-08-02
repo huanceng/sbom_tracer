@@ -8,7 +8,7 @@ import time
 import traceback
 
 from sbom_tracer.local_analyzer.analyzer_factory import AnalyzerFactory
-from sbom_tracer.util.common_util import run_daemon, get_command_config
+from sbom_tracer.util.common_util import run_daemon, get_command_config, infer_kernel_source_dir
 from sbom_tracer.util.const import EXECSNOOP_PATH, H2SNIFF_PATH, SSLSNIFF_PATH, PROJECT_NAME, DEFINITION_FILE_PATTERNS
 from sbom_tracer.util.shell_util import execute, execute_recursive
 
@@ -67,10 +67,9 @@ class BccTracer(object):
         bcc_python_version = self.infer_bcc_python_version()
         for tool, trace_log in [(EXECSNOOP_PATH, self.execsnoop_log), (SSLSNIFF_PATH, self.sslsniff_log),
                                 (H2SNIFF_PATH, self.h2sniff_log)]:
-            cmd = "sudo python{} {} --task-id {}".format(bcc_python_version, tool, self.task_id)
-            if self.kernel_source:
-                cmd = "sudo BCC_KERNEL_SOURCE={} python{} {} --task-id {}".format(
-                    self.kernel_source, bcc_python_version, tool, self.task_id)
+            kernel_source = self.kernel_source if self.kernel_source else infer_kernel_source_dir()
+            cmd = "sudo BCC_KERNEL_SOURCE={} python{} {} --task-id {}".format(
+                kernel_source, bcc_python_version, tool, self.task_id)
             run_daemon(execute, (cmd,), dict(stdout=open(trace_log, "w"), stderr=subprocess.PIPE))
 
     @classmethod

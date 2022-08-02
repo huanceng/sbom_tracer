@@ -1,3 +1,4 @@
+import os
 import time
 from threading import Thread
 
@@ -19,3 +20,15 @@ def run_daemon(target, args, kwargs):
 def get_command_config():
     with open(DEFAULT_COMMAND_CONFIG, "r") as f:
         return yaml.safe_load(f)
+
+
+def infer_kernel_source_dir():
+    link_path = "/lib/modules/{}/build".format(os.uname()[2])
+    if os.path.isdir(link_path):
+        return link_path
+    kernel_home = "/usr/src/kernels"
+    if not os.path.isdir(kernel_home):
+        return None
+    if not os.listdir(kernel_home):
+        return None
+    return os.path.join(kernel_home, sorted(os.listdir(kernel_home), reverse=True)[0])

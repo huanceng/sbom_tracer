@@ -23,20 +23,31 @@ init() {
 
 install_bcc() {
   echo "======install bcc begin======"
+  sudo ${PACKAGE_MANAGER_APP} -y update
   if [ "${DISTRO}" == "RedHat" ] || [ "${DISTRO}" == "openEuler" ]; then
     sudo ${PACKAGE_MANAGER_APP} -y install gnutls
     sudo ${PACKAGE_MANAGER_APP} -y install bcc
     sudo ${PACKAGE_MANAGER_APP} -y install kernel-devel-$(uname -r)
+    sudo ${PACKAGE_MANAGER_APP} -y install kernel-devel
     sudo ${PACKAGE_MANAGER_APP} -y install kernel-headers-$(uname -r)
+    sudo ${PACKAGE_MANAGER_APP} -y install kernel-headers
   elif [ "${DISTRO}" == "Debian" ]; then
     sudo ${PACKAGE_MANAGER_APP} -y install gnutls-bin
     sudo ${PACKAGE_MANAGER_APP} -y install bpfcc-tools
     sudo ${PACKAGE_MANAGER_APP} -y install linux-headers-$(uname -r)
+    sudo ${PACKAGE_MANAGER_APP} -y install linux-headers
   fi
 
-  if [ ! -d /usr/share/bcc ]; then
-    echo "install bcc error"
-    exit 1
+  if [ "${DISTRO}" == "RedHat" ] || [ "${DISTRO}" == "openEuler" ]; then
+    if [ ! -d /usr/share/bcc ]; then
+      echo "install bcc error"
+      exit 1
+    fi
+  fi
+
+  if [ "${DISTRO}" == "Debian" ] && [ ! -d /usr/share/bpfcc-tools ]; then
+      echo "install bcc error"
+      exit 1
   fi
 
   infer_bcc_python_version

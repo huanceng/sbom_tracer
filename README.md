@@ -20,7 +20,7 @@ e.g., `sbom_tracer -s "bash build.sh" -w "/tmp/sbom_tracer_workspace" -k "/lib/m
 ### Parameters
 1. `-s`, `--shell`: the input shell command
 2. `-w`, `--workspace`: tracer workspace. If not specified, it will be ~/sbom_tracer_workspace
-3. `-k`, `--kernel_source`: the absolute path of kernel sources. If not specified, BCC will try to find kernel sources in /lib/modules/$(uname -r)/build. See [BCC_KERNEL_SOURCE](https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-kernel-source-directory) for details
+3. `-k`, `--kernel_source`: the absolute path of kernel sources. If not specified, will try to find kernel sources in /lib/modules/$(uname -r)/build and /usr/src/kernels. See [BCC_KERNEL_SOURCE](https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-kernel-source-directory) for details
 4. `-t`, `--task_id`: task id of a run. If not specified, task id will be the current timestamp
 
 ### Run in Docker
