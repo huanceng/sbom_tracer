@@ -24,8 +24,8 @@ e.g., `sbom_tracer -s "bash build.sh" -w "/tmp/sbom_tracer_workspace" -k "/lib/m
 4. `-t`, `--task_id`: task id of a run. If not specified, task id will be the current timestamp
 
 ### Run in Docker
-To run *SBOM Tracer* in a docker, the docker must be run in **privileged mode**, e.g., 
-`docker run -it --privileged -v /var/run/docker.sock:/host/var/run/docker.sock -v /dev:/host/dev -v /proc:/host/proc:ro -v /boot:/host/boot:ro -v /usr:/host/usr:ro -v /etc:/host/etc:ro -v /lib/modules:/host/lib/modules:ro your_docker_image /bin/bash`
+To run *SBOM Tracer* in a docker, the docker must be run in **privileged mode**, and it's recommended to mount /src to get proper kernel sources, e.g., 
+`docker run -it --privileged -v /usr:/host/usr:ro your_docker_image /bin/bash`
 
 ## Output
 *SBOM Tracer* will output four logs:
