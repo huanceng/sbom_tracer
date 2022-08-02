@@ -45,9 +45,11 @@ install_bcc() {
     fi
   fi
 
-  if [ "${DISTRO}" == "Debian" ] && [ ! -d /usr/share/bpfcc-tools ]; then
-      echo "install bcc error"
-      exit 1
+  if [ "${DISTRO}" == "Debian" ]; then
+      if [ ! -f /usr/sbin/execsnoop-bpfcc ] || [ ! -f /sbin/execsnoop-bpfcc ]; then
+        echo "install bcc error"
+        exit 1
+      fi
   fi
 
   infer_bcc_python_version
