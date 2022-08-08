@@ -139,4 +139,4 @@ cython_debug/
 
 # IDE
 .vscode
-.idea/
+../.idea/
